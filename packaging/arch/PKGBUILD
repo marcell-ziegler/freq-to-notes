@@ -1,5 +1,5 @@
 pkgname=freq-to-notes
-pkgver=1.0.0
+pkgver=1.1.0
 pkgrel=1
 pkgdesc="A TUI to convert note frequencies to 12-tone equal-temperament notes names"
 arch=('x86_64')
