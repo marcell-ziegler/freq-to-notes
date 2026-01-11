@@ -60,18 +60,12 @@ impl Default for Note {
 impl PartialEq for Note {
     // Compes Notes by their midi value
     fn eq(&self, other: &Self) -> bool {
-        self.midi == other.midi
+        self.from_freq == other.from_freq
     }
 }
-impl Eq for Note {}
 impl PartialOrd for Note {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-impl Ord for Note {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.midi.cmp(&other.midi)
+        self.from_freq.partial_cmp(&other.from_freq)
     }
 }
 impl Display for Note {

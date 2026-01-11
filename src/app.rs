@@ -13,6 +13,7 @@ pub struct App {
     pub current_screen: CurrentScreen,
     pub notes_sorted: bool,
     pub note_list_state: ListState,
+    pub note_list_sorted_state: ListState,
     pub note_input: String,
 }
 impl App {
@@ -23,20 +24,28 @@ impl App {
     // Get a sorted copy of the notes stored in the app
     pub fn notes_sorted(&self) -> Vec<Note> {
         let mut sorted = self.notes.clone();
-        sorted.sort();
+        sorted.sort_by(|a, b| a.partial_cmp(b).unwrap());
         sorted
+    }
+
+    pub fn sorted_index_to_real_index(&self, index: usize) -> Option<usize> {
+        let sorted = self.notes_sorted();
+        let target = sorted[index].from_freq;
+        let eps = 1e-3;
+        self.notes
+            .iter()
+            .position(|x| (x.from_freq - target).abs() < eps)
     }
 }
 impl Default for App {
     fn default() -> Self {
-        let mut state = ListState::default();
-        state.select_first();
         App {
             notes: Vec::new(),
             running: true,
             current_screen: CurrentScreen::Main,
             notes_sorted: false,
-            note_list_state: state,
+            note_list_state: ListState::default(),
+            note_list_sorted_state: ListState::default(),
             note_input: String::new(),
         }
     }
@@ -63,17 +72,28 @@ pub fn run_app(
 
             match app.current_screen {
                 CurrentScreen::Main => match key_event.code {
-                    KeyCode::Up => {
-                        app.note_list_state.select_previous();
-                    }
-                    KeyCode::Down => {
-                        app.note_list_state.select_next();
-                    }
-                    KeyCode::Char('d') => {
-                        if let Some(i) = app.note_list_state.selected() {
-                            app.notes.remove(i);
+                    KeyCode::Up => match app.notes_sorted {
+                        true => app.note_list_sorted_state.select_previous(),
+                        false => app.note_list_state.select_previous(),
+                    },
+                    KeyCode::Down => match app.notes_sorted {
+                        true => app.note_list_sorted_state.select_next(),
+                        false => app.note_list_state.select_next(),
+                    },
+                    KeyCode::Char('d') => match app.notes_sorted {
+                        false => {
+                            if let Some(i) = app.note_list_state.selected() {
+                                app.notes.remove(i);
+                            }
                         }
-                    }
+                        true => {
+                            if let Some(i) = app.note_list_sorted_state.selected()
+                                && let Some(i2) = app.sorted_index_to_real_index(i)
+                            {
+                                app.notes.remove(i2);
+                            }
+                        }
+                    },
                     KeyCode::Char('n') => {
                         app.current_screen = CurrentScreen::NoteInput;
                     }
@@ -88,11 +108,19 @@ pub fn run_app(
                         app.note_input = String::new();
                     }
                     KeyCode::Enter => {
+                        let note: Option<Note>;
                         if let Ok(val) = app.note_input.parse::<f64>() {
-                            app.notes.push(Note::from_freq(val));
+                            note = Some(Note::from_freq(val))
                         } else if let Ok(val) = app.note_input.parse::<u32>() {
-                            app.notes.push(Note::from_freq(val as f64))
+                            note = Some(Note::from_freq(val as f64))
+                        } else {
+                            note = None
                         }
+
+                        if let Some(n) = note {
+                            app.notes.push(n);
+                        }
+
                         app.current_screen = CurrentScreen::Main;
                         app.note_input = String::new();
                     }

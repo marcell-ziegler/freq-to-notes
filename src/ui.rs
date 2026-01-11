@@ -25,20 +25,6 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
     .block(Block::bordered());
     frame.render_widget(title, chunks[0]);
 
-    let items = match app.notes_sorted {
-        true => app.notes_sorted(),
-        false => app.notes_in_input_order(),
-    };
-
-    let mut names: Vec<String> = Vec::new();
-
-    for item in items {
-        names.push(format!(
-            "{} : {:.2} Hz -> {:.2} Hz",
-            item.note, item.from_freq, item.freq
-        ));
-    }
-
     let bind_style = Style::default().fg(Color::Blue).bold();
 
     let binds_parts = match app.current_screen {
@@ -89,10 +75,32 @@ pub fn ui(frame: &mut Frame, app: &mut App) {
         list_block = list_block.title(Span::styled("Sorted", Style::default().fg(Color::Blue)));
     }
 
+    let items = match app.notes_sorted {
+        true => app.notes_sorted(),
+        false => app.notes_in_input_order(),
+    };
+
+    let mut names: Vec<String> = Vec::new();
+
+    for item in items {
+        names.push(format!(
+            "{} : {:.2} Hz -> {:.2} Hz",
+            item.note, item.from_freq, item.freq
+        ));
+    }
+
     let list = List::new(names)
         .block(list_block)
         .highlight_style(Style::default().bg(Color::Yellow).fg(Color::Black));
-    frame.render_stateful_widget(list, chunks[1], &mut app.note_list_state);
+
+    frame.render_stateful_widget(
+        list,
+        chunks[1],
+        match app.notes_sorted {
+            true => &mut app.note_list_sorted_state,
+            false => &mut app.note_list_state,
+        },
+    );
 
     if let CurrentScreen::NoteInput = &app.current_screen {
         let popup_rect = centered_rect(50, 30, main_rect);
