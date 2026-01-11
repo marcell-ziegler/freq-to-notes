@@ -1,0 +1,22 @@
+pkgname=freq-to-notes
+pkgver=1.0.0
+pkgrel=1
+pkgdesc="A TUI to convert note frequencies to 12-tone equal-temperament notes names"
+arch=('x86_64')
+url="https://www.github.com/marcell-ziegler/freq-to-notes"
+license=('MIT')
+depends=('glibc')
+makedepends=('cargo')
+source=("$pkgname-$pkgver.tar.gz")
+
+source=("$pkgname")
+sha256sums=('SKIP')
+
+build() {
+    cd "$srcdir/$pkgname-$pkgver"
+    cargo build --release
+}
+
+package() {
+    install -Dm755 "target/release/$pkgname" "$pkgdir/usr/bin/$pkgname"
+}
