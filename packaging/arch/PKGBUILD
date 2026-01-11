@@ -7,9 +7,9 @@ url="https://www.github.com/marcell-ziegler/freq-to-notes"
 license=('MIT')
 depends=('glibc')
 makedepends=('cargo')
-source=("$pkgname-$pkgver.tar.gz")
-
-source=("$pkgname")
+# source=("https://github.com/marcell-ziegler/freq-to-notes/archive/refs/tags/v$pkgver.tar.gz")
+# source=("v$pkgver.tar.gz")
+source=("freq-to-notes-$pkgver.tar.gz::https://github.com/marcell-ziegler/freq-to-notes/archive/v$pkgver.tar.gz")
 sha256sums=('SKIP')
 
 build() {
@@ -17,6 +17,9 @@ build() {
     cargo build --release
 }
 
+# package() {
+#     install -Dm755 "/target/release/$pkgname" "$pkgdir/usr/bin/$pkgname"
+# }
 package() {
-    install -Dm755 "target/release/$pkgname" "$pkgdir/usr/bin/$pkgname"
+    install -Dm755 "$srcdir/$pkgname-$pkgver/target/release/$pkgname" "$pkgdir/usr/bin/$pkgname"
 }
